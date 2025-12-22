@@ -406,7 +406,7 @@ const DeepSquidContentForm = () => {
         <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 mb-6 border border-white/20">
           <div className="flex items-center gap-4">
             <img 
-              src="https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/YT_banner_2.png" 
+              src="./YT_banner_2.png"
               alt="DeepSquid AI Logo" 
               className="h-20 w-20 object-contain"
             />
