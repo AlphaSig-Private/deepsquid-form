@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DeepSquid Content Logistics</title>
+  <title>DeepSquid Content Logistics - Phase 1A</title>
   
   <!-- React -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -14,9 +14,6 @@
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
   
   <style>
     body {
@@ -29,16 +26,634 @@
   </style>
 </head>
 <body>
-  <!-- React App Root -->
   <div id="root"></div>
   
-  <!-- Load the React Component -->
-  <script type="text/babel" src="./deepsquid-enhanced-form.jsx"></script>
-  
-  <!-- Render the Component -->
   <script type="text/babel">
-    const { Upload, Sparkles, Save, Calendar, Clock, Image, Video, Hash, TrendingUp, AlertTriangle, Check, X, Copy, Trash2 } = lucide;
+    const { useState, useEffect } = React;
     
+    // Lucide Icons (using Unicode alternatives)
+    const Check = ({ className }) => <span className={className}>✓</span>;
+    const X = ({ className }) => <span className={className}>✕</span>;
+    const AlertTriangle = ({ className }) => <span className={className}>⚠</span>;
+    const Globe = ({ className }) => <span className={className}>🌍</span>;
+    
+    // MULTI-LANGUAGE TRANSLATIONS
+    const translations = {
+      en: {
+        title: "DeepSquid Phase 1A Test",
+        subtitle: "Hashtag Limits & Character Counting",
+        testInstructions: "TEST INSTRUCTIONS:",
+        test1: 'Type "bondi, sunset, sydney" in hashtags → Should show "3/5 hashtags ✅"',
+        test2: 'Type 7 hashtags → Should show "7/5 hashtags ❌" in RED',
+        test3: 'Click "Enhance with AI" → Hashtags appear at bottom',
+        test4: "Try submitting with 7 hashtags → Should BLOCK with error",
+        captionLabel: "Caption",
+        captionPlaceholder: "Try: Amazing sunset at Bondi Beach today!",
+        hashtagLabel: "Hashtags (comma separated, max 5):",
+        hashtagPlaceholder: "Try: bondi, sunset, sydney, beach, australia, summer, ocean",
+        formatted: "Formatted:",
+        chars: "chars",
+        remove: "Remove",
+        enhanceButton: "Enhance with AI (Demo)",
+        enhancing: "Enhancing...",
+        aiCaptionsTitle: "AI Enhanced Captions",
+        group1: "Instagram • TikTok • Threads",
+        group2: "YouTube Shorts",
+        platformsTitle: "Platforms",
+        submitButton: "Test Submit (Press F12 to see payload)",
+        footerText: "Will validate hashtags and show payload in browser console",
+        errorNoCaption: "Please enter a caption first",
+        errorTooManyHashtags: "Too many hashtags! You have {count}, maximum is 5.\n\nPlease remove {extra} hashtag(s).",
+        errorNoPlatforms: "Please select at least one platform",
+        successMessage: "Test successful!\n\nPayload logged to console.\nPress F12 to view details.",
+        hashtags: "hashtags"
+      },
+      es: {
+        title: "DeepSquid Prueba Fase 1A",
+        subtitle: "Límites de Hashtags y Conteo de Caracteres",
+        testInstructions: "INSTRUCCIONES DE PRUEBA:",
+        test1: 'Escribe "bondi, sunset, sydney" en hashtags → Debería mostrar "3/5 hashtags ✅"',
+        test2: 'Escribe 7 hashtags → Debería mostrar "7/5 hashtags ❌" en ROJO',
+        test3: 'Haz clic en "Mejorar con IA" → Los hashtags aparecen abajo',
+        test4: "Intenta enviar con 7 hashtags → Debería BLOQUEAR con error",
+        captionLabel: "Descripción",
+        captionPlaceholder: "Prueba: ¡Atardecer increíble en Bondi Beach hoy!",
+        hashtagLabel: "Hashtags (separados por comas, máx 5):",
+        hashtagPlaceholder: "Prueba: bondi, atardecer, sydney, playa, australia, verano, océano",
+        formatted: "Formateado:",
+        chars: "caracteres",
+        remove: "Eliminar",
+        enhanceButton: "Mejorar con IA (Demo)",
+        enhancing: "Mejorando...",
+        aiCaptionsTitle: "Descripciones Mejoradas por IA",
+        group1: "Instagram • TikTok • Threads",
+        group2: "YouTube Shorts",
+        platformsTitle: "Plataformas",
+        submitButton: "Enviar Prueba (Presiona F12 para ver datos)",
+        footerText: "Validará hashtags y mostrará datos en la consola del navegador",
+        errorNoCaption: "Por favor ingresa una descripción primero",
+        errorTooManyHashtags: "¡Demasiados hashtags! Tienes {count}, el máximo es 5.\n\nPor favor elimina {extra} hashtag(s).",
+        errorNoPlatforms: "Por favor selecciona al menos una plataforma",
+        successMessage: "¡Prueba exitosa!\n\nDatos registrados en la consola.\nPresiona F12 para ver detalles.",
+        hashtags: "hashtags"
+      },
+      fr: {
+        title: "DeepSquid Test Phase 1A",
+        subtitle: "Limites de Hashtags et Comptage de Caractères",
+        testInstructions: "INSTRUCTIONS DE TEST:",
+        test1: 'Tapez "bondi, sunset, sydney" dans les hashtags → Devrait afficher "3/5 hashtags ✅"',
+        test2: 'Tapez 7 hashtags → Devrait afficher "7/5 hashtags ❌" en ROUGE',
+        test3: 'Cliquez sur "Améliorer avec IA" → Les hashtags apparaissent en bas',
+        test4: "Essayez de soumettre avec 7 hashtags → Devrait BLOQUER avec erreur",
+        captionLabel: "Légende",
+        captionPlaceholder: "Essayez: Magnifique coucher de soleil à Bondi Beach aujourd'hui!",
+        hashtagLabel: "Hashtags (séparés par des virgules, max 5):",
+        hashtagPlaceholder: "Essayez: bondi, coucher, sydney, plage, australie, été, océan",
+        formatted: "Formaté:",
+        chars: "caractères",
+        remove: "Supprimer",
+        enhanceButton: "Améliorer avec IA (Démo)",
+        enhancing: "Amélioration...",
+        aiCaptionsTitle: "Légendes Améliorées par IA",
+        group1: "Instagram • TikTok • Threads",
+        group2: "YouTube Shorts",
+        platformsTitle: "Plateformes",
+        submitButton: "Test d'Envoi (Appuyez sur F12 pour voir les données)",
+        footerText: "Validera les hashtags et affichera les données dans la console du navigateur",
+        errorNoCaption: "Veuillez d'abord entrer une légende",
+        errorTooManyHashtags: "Trop de hashtags! Vous en avez {count}, le maximum est 5.\n\nVeuillez supprimer {extra} hashtag(s).",
+        errorNoPlatforms: "Veuillez sélectionner au moins une plateforme",
+        successMessage: "Test réussi!\n\nDonnées enregistrées dans la console.\nAppuyez sur F12 pour voir les détails.",
+        hashtags: "hashtags"
+      },
+      de: {
+        title: "DeepSquid Phase 1A Test",
+        subtitle: "Hashtag-Limits und Zeichenzählung",
+        testInstructions: "TESTANWEISUNGEN:",
+        test1: 'Geben Sie "bondi, sunset, sydney" in Hashtags ein → Sollte "3/5 hashtags ✅" anzeigen',
+        test2: 'Geben Sie 7 Hashtags ein → Sollte "7/5 hashtags ❌" in ROT anzeigen',
+        test3: 'Klicken Sie auf "Mit KI verbessern" → Hashtags erscheinen unten',
+        test4: "Versuchen Sie mit 7 Hashtags zu senden → Sollte mit Fehler BLOCKIEREN",
+        captionLabel: "Beschreibung",
+        captionPlaceholder: "Versuchen Sie: Erstaunlicher Sonnenuntergang am Bondi Beach heute!",
+        hashtagLabel: "Hashtags (durch Kommas getrennt, max 5):",
+        hashtagPlaceholder: "Versuchen Sie: bondi, sonnenuntergang, sydney, strand, australien, sommer, ozean",
+        formatted: "Formatiert:",
+        chars: "Zeichen",
+        remove: "Entfernen",
+        enhanceButton: "Mit KI verbessern (Demo)",
+        enhancing: "Wird verbessert...",
+        aiCaptionsTitle: "KI-Verbesserte Beschreibungen",
+        group1: "Instagram • TikTok • Threads",
+        group2: "YouTube Shorts",
+        platformsTitle: "Plattformen",
+        submitButton: "Test-Übermittlung (Drücken Sie F12 für Daten)",
+        footerText: "Validiert Hashtags und zeigt Daten in der Browser-Konsole an",
+        errorNoCaption: "Bitte geben Sie zuerst eine Beschreibung ein",
+        errorTooManyHashtags: "Zu viele Hashtags! Sie haben {count}, maximal sind 5.\n\nBitte entfernen Sie {extra} Hashtag(s).",
+        errorNoPlatforms: "Bitte wählen Sie mindestens eine Plattform",
+        successMessage: "Test erfolgreich!\n\nDaten in Konsole protokolliert.\nDrücken Sie F12 für Details.",
+        hashtags: "Hashtags"
+      },
+      pt: {
+        title: "DeepSquid Teste Fase 1A",
+        subtitle: "Limites de Hashtags e Contagem de Caracteres",
+        testInstructions: "INSTRUÇÕES DE TESTE:",
+        test1: 'Digite "bondi, sunset, sydney" em hashtags → Deve mostrar "3/5 hashtags ✅"',
+        test2: 'Digite 7 hashtags → Deve mostrar "7/5 hashtags ❌" em VERMELHO',
+        test3: 'Clique em "Melhorar com IA" → Hashtags aparecem embaixo',
+        test4: "Tente enviar com 7 hashtags → Deve BLOQUEAR com erro",
+        captionLabel: "Legenda",
+        captionPlaceholder: "Tente: Pôr do sol incrível em Bondi Beach hoje!",
+        hashtagLabel: "Hashtags (separadas por vírgulas, máx 5):",
+        hashtagPlaceholder: "Tente: bondi, pordosol, sydney, praia, australia, verao, oceano",
+        formatted: "Formatado:",
+        chars: "caracteres",
+        remove: "Remover",
+        enhanceButton: "Melhorar com IA (Demo)",
+        enhancing: "Melhorando...",
+        aiCaptionsTitle: "Legendas Melhoradas por IA",
+        group1: "Instagram • TikTok • Threads",
+        group2: "YouTube Shorts",
+        platformsTitle: "Plataformas",
+        submitButton: "Teste de Envio (Pressione F12 para ver dados)",
+        footerText: "Validará hashtags e mostrará dados no console do navegador",
+        errorNoCaption: "Por favor, insira uma legenda primeiro",
+        errorTooManyHashtags: "Muitas hashtags! Você tem {count}, o máximo é 5.\n\nPor favor, remova {extra} hashtag(s).",
+        errorNoPlatforms: "Por favor, selecione pelo menos uma plataforma",
+        successMessage: "Teste bem-sucedido!\n\nDados registrados no console.\nPressione F12 para ver detalhes.",
+        hashtags: "hashtags"
+      },
+      ja: {
+        title: "DeepSquid フェーズ1Aテスト",
+        subtitle: "ハッシュタグ制限と文字数カウント",
+        testInstructions: "テスト手順:",
+        test1: 'ハッシュタグに「bondi, sunset, sydney」と入力 → 「3/5 hashtags ✅」と表示されるはず',
+        test2: 'ハッシュタグを7つ入力 → 赤色で「7/5 hashtags ❌」と表示されるはず',
+        test3: '「AIで強化」をクリック → 下部にハッシュタグが表示される',
+        test4: "ハッシュタグ7つで送信を試す → エラーでブロックされるはず",
+        captionLabel: "キャプション",
+        captionPlaceholder: "試してみて: 今日のボンダイビーチの素晴らしい夕日！",
+        hashtagLabel: "ハッシュタグ（カンマ区切り、最大5個）：",
+        hashtagPlaceholder: "試してみて: bondi, sunset, sydney, beach, australia, summer, ocean",
+        formatted: "フォーマット済み:",
+        chars: "文字",
+        remove: "削除",
+        enhanceButton: "AIで強化（デモ）",
+        enhancing: "強化中...",
+        aiCaptionsTitle: "AI強化キャプション",
+        group1: "Instagram • TikTok • Threads",
+        group2: "YouTube Shorts",
+        platformsTitle: "プラットフォーム",
+        submitButton: "テスト送信（F12でデータ表示）",
+        footerText: "ハッシュタグを検証し、ブラウザコンソールにデータを表示します",
+        errorNoCaption: "まずキャプションを入力してください",
+        errorTooManyHashtags: "ハッシュタグが多すぎます！{count}個ありますが、最大は5個です。\n\n{extra}個のハッシュタグを削除してください。",
+        errorNoPlatforms: "少なくとも1つのプラットフォームを選択してください",
+        successMessage: "テスト成功！\n\nデータがコンソールに記録されました。\nF12で詳細を表示してください。",
+        hashtags: "ハッシュタグ"
+      },
+      zh: {
+        title: "DeepSquid 阶段1A测试",
+        subtitle: "标签限制和字符计数",
+        testInstructions: "测试说明：",
+        test1: '在标签中输入"bondi, sunset, sydney" → 应显示"3/5 hashtags ✅"',
+        test2: '输入7个标签 → 应以红色显示"7/5 hashtags ❌"',
+        test3: '点击"AI增强" → 标签显示在底部',
+        test4: "尝试使用7个标签提交 → 应该被错误阻止",
+        captionLabel: "说明",
+        captionPlaceholder: "试试：今天邦迪海滩的惊人日落！",
+        hashtagLabel: "标签（逗号分隔，最多5个）：",
+        hashtagPlaceholder: "试试：bondi, sunset, sydney, beach, australia, summer, ocean",
+        formatted: "已格式化：",
+        chars: "字符",
+        remove: "删除",
+        enhanceButton: "AI增强（演示）",
+        enhancing: "增强中...",
+        aiCaptionsTitle: "AI增强说明",
+        group1: "Instagram • TikTok • Threads",
+        group2: "YouTube Shorts",
+        platformsTitle: "平台",
+        submitButton: "测试提交（按F12查看数据）",
+        footerText: "将验证标签并在浏览器控制台中显示数据",
+        errorNoCaption: "请先输入说明",
+        errorTooManyHashtags: "标签太多！您有{count}个，最多5个。\n\n请删除{extra}个标签。",
+        errorNoPlatforms: "请至少选择一个平台",
+        successMessage: "测试成功！\n\n数据已记录在控制台。\n按F12查看详情。",
+        hashtags: "标签"
+      },
+      ar: {
+        title: "اختبار DeepSquid المرحلة 1A",
+        subtitle: "حدود الوسوم وعد الأحرف",
+        testInstructions: "تعليمات الاختبار:",
+        test1: 'اكتب "bondi, sunset, sydney" في الوسوم ← يجب أن يظهر "3/5 hashtags ✅"',
+        test2: 'اكتب 7 وسوم ← يجب أن يظهر "7/5 hashtags ❌" باللون الأحمر',
+        test3: 'انقر على "تحسين بالذكاء الاصطناعي" ← تظهر الوسوم في الأسفل',
+        test4: "حاول الإرسال بـ 7 وسوم ← يجب أن يتم الحظر مع خطأ",
+        captionLabel: "التعليق",
+        captionPlaceholder: "جرب: غروب رائع في شاطئ بوندي اليوم!",
+        hashtagLabel: "الوسوم (مفصولة بفواصل، الحد الأقصى 5):",
+        hashtagPlaceholder: "جرب: bondi, sunset, sydney, beach, australia, summer, ocean",
+        formatted: "منسق:",
+        chars: "حرف",
+        remove: "إزالة",
+        enhanceButton: "تحسين بالذكاء الاصطناعي (تجريبي)",
+        enhancing: "جاري التحسين...",
+        aiCaptionsTitle: "تعليقات محسّنة بالذكاء الاصطناعي",
+        group1: "Instagram • TikTok • Threads",
+        group2: "YouTube Shorts",
+        platformsTitle: "المنصات",
+        submitButton: "إرسال الاختبار (اضغط F12 لرؤية البيانات)",
+        footerText: "سيتحقق من الوسوم ويعرض البيانات في وحدة تحكم المتصفح",
+        errorNoCaption: "الرجاء إدخال تعليق أولاً",
+        errorTooManyHashtags: "وسوم كثيرة جداً! لديك {count}، الحد الأقصى هو 5.\n\nالرجاء إزالة {extra} وسم.",
+        errorNoPlatforms: "الرجاء تحديد منصة واحدة على الأقل",
+        successMessage: "نجح الاختبار!\n\nتم تسجيل البيانات في وحدة التحكم.\nاضغط F12 لرؤية التفاصيل.",
+        hashtags: "وسوم"
+      },
+      hi: {
+        title: "DeepSquid चरण 1A परीक्षण",
+        subtitle: "हैशटैग सीमाएं और वर्ण गणना",
+        testInstructions: "परीक्षण निर्देश:",
+        test1: 'हैशटैग में "bondi, sunset, sydney" टाइप करें → "3/5 hashtags ✅" दिखना चाहिए',
+        test2: '7 हैशटैग टाइप करें → लाल रंग में "7/5 hashtags ❌" दिखना चाहिए',
+        test3: '"AI से बेहतर बनाएं" पर क्लिक करें → हैशटैग नीचे दिखाई देंगे',
+        test4: "7 हैशटैग के साथ सबमिट करने का प्रयास करें → त्रुटि के साथ ब्लॉक होना चाहिए",
+        captionLabel: "कैप्शन",
+        captionPlaceholder: "कोशिश करें: आज बोंडी बीच पर अद्भुत सूर्यास्त!",
+        hashtagLabel: "हैशटैग (अल्पविराम से अलग, अधिकतम 5):",
+        hashtagPlaceholder: "कोशिश करें: bondi, sunset, sydney, beach, australia, summer, ocean",
+        formatted: "स्वरूपित:",
+        chars: "वर्ण",
+        remove: "हटाएं",
+        enhanceButton: "AI से बेहतर बनाएं (डेमो)",
+        enhancing: "बेहतर बना रहे हैं...",
+        aiCaptionsTitle: "AI से बेहतर कैप्शन",
+        group1: "Instagram • TikTok • Threads",
+        group2: "YouTube Shorts",
+        platformsTitle: "प्लेटफ़ॉर्म",
+        submitButton: "परीक्षण सबमिट करें (डेटा देखने के लिए F12 दबाएं)",
+        footerText: "हैशटैग को मान्य करेगा और ब्राउज़र कंसोल में डेटा दिखाएगा",
+        errorNoCaption: "कृपया पहले एक कैप्शन दर्ज करें",
+        errorTooManyHashtags: "बहुत अधिक हैशटैग! आपके पास {count} हैं, अधिकतम 5 हैं।\n\nकृपया {extra} हैशटैग हटाएं।",
+        errorNoPlatforms: "कृपया कम से कम एक प्लेटफ़ॉर्म चुनें",
+        successMessage: "परीक्षण सफल!\n\nडेटा कंसोल में लॉग किया गया।\nविवरण देखने के लिए F12 दबाएं।",
+        hashtags: "हैशटैग"
+      },
+      ko: {
+        title: "DeepSquid 1A단계 테스트",
+        subtitle: "해시태그 제한 및 문자 수 계산",
+        testInstructions: "테스트 지침:",
+        test1: '해시태그에 "bondi, sunset, sydney" 입력 → "3/5 hashtags ✅" 표시되어야 함',
+        test2: '해시태그 7개 입력 → 빨간색으로 "7/5 hashtags ❌" 표시되어야 함',
+        test3: '"AI로 향상" 클릭 → 하단에 해시태그 표시됨',
+        test4: "해시태그 7개로 제출 시도 → 오류로 차단되어야 함",
+        captionLabel: "캡션",
+        captionPlaceholder: "시도해보세요: 오늘 본다이 비치의 놀라운 일몰!",
+        hashtagLabel: "해시태그 (쉼표로 구분, 최대 5개):",
+        hashtagPlaceholder: "시도해보세요: bondi, sunset, sydney, beach, australia, summer, ocean",
+        formatted: "형식:",
+        chars: "문자",
+        remove: "제거",
+        enhanceButton: "AI로 향상 (데모)",
+        enhancing: "향상 중...",
+        aiCaptionsTitle: "AI 향상 캡션",
+        group1: "Instagram • TikTok • Threads",
+        group2: "YouTube Shorts",
+        platformsTitle: "플랫폼",
+        submitButton: "테스트 제출 (F12를 눌러 데이터 보기)",
+        footerText: "해시태그를 검증하고 브라우저 콘솔에 데이터를 표시합니다",
+        errorNoCaption: "먼저 캡션을 입력하세요",
+        errorTooManyHashtags: "해시태그가 너무 많습니다! {count}개가 있지만 최대 5개입니다.\n\n{extra}개의 해시태그를 제거하세요.",
+        errorNoPlatforms: "최소 하나의 플랫폼을 선택하세요",
+        successMessage: "테스트 성공!\n\n데이터가 콘솔에 기록되었습니다.\nF12를 눌러 자세한 내용을 확인하세요.",
+        hashtags: "해시태그"
+      }
+    };
+    
+    const DeepSquidContentForm = () => {
+      const [language, setLanguage] = useState('en');
+      const [originalCaption, setOriginalCaption] = useState('');
+      const [hashtags, setHashtags] = useState('');
+      const [aiEnhancing, setAiEnhancing] = useState(false);
+      const [captions, setCaptions] = useState({
+        group1: { ai: '', final: '' },
+        group2: { ai: '', final: '' }
+      });
+      
+      const [platforms, setPlatforms] = useState({
+        instagram: { enabled: true },
+        tiktok: { enabled: true },
+        youtube: { enabled: true },
+        threads: { enabled: false },
+        facebook: { enabled: false },
+        linkedin: { enabled: false }
+      });
+
+      const t = translations[language];
+
+      // PHASE 1A: Hashtag parsing with 5-tag limit
+      const parseHashtags = (input) => {
+        if (!input) return [];
+        return input
+          .split(',')
+          .map(tag => {
+            const cleaned = tag.trim().replace(/[^a-zA-Z0-9]/g, '');
+            return cleaned.length >= 2 ? '#' + cleaned.toLowerCase() : '';
+          })
+          .filter(tag => tag.length > 1)
+          .slice(0, 5);
+      };
+      
+      const getTotalCharCount = (caption, hashtagArray) => {
+        const hashtagString = hashtagArray.join(' ');
+        return caption.length + (hashtagString.length > 0 ? hashtagString.length + 1 : 0);
+      };
+      
+      const getCharStatus = (count, limit) => {
+        if (count === 0) return { color: 'text-gray-400' };
+        if (count < limit * 0.8) return { color: 'text-green-500' };
+        if (count < limit) return { color: 'text-yellow-500' };
+        return { color: 'text-red-500' };
+      };
+
+      const platformLimits = { group1: 2200, group2: 100 };
+
+      const enhanceWithAI = () => {
+        if (!originalCaption.trim()) {
+          alert(t.errorNoCaption);
+          return;
+        }
+        
+        setAiEnhancing(true);
+        
+        setTimeout(() => {
+          const hashtagArray = parseHashtags(hashtags);
+          const hashtagString = hashtagArray.join(' ');
+          
+          const group1Enhanced = `🌅✨ ${originalCaption} This is absolutely stunning! Who else loves these incredible moments? Drop a 👇 if you saw this too!\n\n${hashtagString}`;
+          const group2Enhanced = `${originalCaption} ✨ ${hashtagString}`.substring(0, 100);
+          
+          setCaptions({
+            group1: { ai: group1Enhanced, final: group1Enhanced },
+            group2: { ai: group2Enhanced, final: group2Enhanced }
+          });
+          
+          setAiEnhancing(false);
+        }, 2000);
+      };
+
+      const handleSubmit = () => {
+        if (!originalCaption.trim()) {
+          alert(t.errorNoCaption);
+          return;
+        }
+        
+        const hashtagArray = parseHashtags(hashtags);
+        if (hashtagArray.length > 5) {
+          const errorMsg = t.errorTooManyHashtags
+            .replace('{count}', hashtagArray.length)
+            .replace('{extra}', hashtagArray.length - 5);
+          alert('❌ ' + errorMsg);
+          return;
+        }
+        
+        const enabledPlatforms = Object.entries(platforms).filter(([_, config]) => config.enabled);
+        if (enabledPlatforms.length === 0) {
+          alert('❌ ' + t.errorNoPlatforms);
+          return;
+        }
+        
+        const payload = {
+          originalCaption,
+          hashtags: hashtagArray,
+          hashtagsRaw: hashtags,
+          platforms: enabledPlatforms.map(([name]) => name),
+          language
+        };
+        
+        console.log('📦 PAYLOAD:', JSON.stringify(payload, null, 2));
+        alert('✅ ' + t.successMessage);
+      };
+
+      const hashtagArray = parseHashtags(hashtags);
+      const group1Chars = getTotalCharCount(originalCaption, hashtagArray);
+      const group1Status = getCharStatus(group1Chars, platformLimits.group1);
+
+      const languageOptions = [
+        { code: 'en', name: 'English', flag: '🇺🇸' },
+        { code: 'es', name: 'Español', flag: '🇪🇸' },
+        { code: 'fr', name: 'Français', flag: '🇫🇷' },
+        { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+        { code: 'pt', name: 'Português', flag: '🇧🇷' },
+        { code: 'ja', name: '日本語', flag: '🇯🇵' },
+        { code: 'zh', name: '中文', flag: '🇨🇳' },
+        { code: 'ar', name: 'العربية', flag: '🇸🇦' },
+        { code: 'hi', name: 'हिन्दी', flag: '🇮🇳' },
+        { code: 'ko', name: '한국어', flag: '🇰🇷' }
+      ];
+
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
+          <div className="max-w-4xl mx-auto">
+            {/* Header */}
+            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 mb-6 border border-white/20">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <img 
+                    src="./Squid_Neon_noir.png" 
+                    alt="DeepSquid AI Logo" 
+                    className="h-20 w-20 object-contain rounded-lg"
+                  />
+                  <div>
+                    <h1 className="text-3xl font-bold text-white">{t.title}</h1>
+                    <p className="text-white/70 mt-1">{t.subtitle}</p>
+                  </div>
+                </div>
+                
+                {/* Language Selector */}
+                <div className="relative">
+                  <select
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value)}
+                    className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white font-medium appearance-none pr-10 cursor-pointer hover:bg-white/15 transition-all focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  >
+                    {languageOptions.map(lang => (
+                      <option key={lang.code} value={lang.code} className="bg-slate-800">
+                        {lang.flag} {lang.name}
+                      </option>
+                    ))}
+                  </select>
+                  <Globe className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none text-white/50" />
+                </div>
+              </div>
+            </div>
+
+            {/* Test Instructions */}
+            <div className="bg-blue-500/20 border border-blue-500/30 rounded-xl p-4 mb-6">
+              <h3 className="text-blue-200 font-bold mb-3">🧪 {t.testInstructions}</h3>
+              <div className="text-blue-100 text-sm space-y-2">
+                <div className="flex items-start gap-2">
+                  <span className="font-bold">1.</span>
+                  <span>{t.test1}</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="font-bold">2.</span>
+                  <span>{t.test2}</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="font-bold">3.</span>
+                  <span>{t.test3}</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="font-bold">4.</span>
+                  <span>{t.test4}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Caption Input */}
+            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 mb-6 border border-white/20">
+              <h2 className="text-xl font-bold text-white mb-4">✍️ {t.captionLabel}</h2>
+              
+              <textarea
+                value={originalCaption}
+                onChange={(e) => setOriginalCaption(e.target.value)}
+                placeholder={t.captionPlaceholder}
+                className="w-full bg-white/10 border border-white/20 rounded-lg p-4 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500 min-h-[100px] resize-none"
+              />
+              
+              <div className="mt-4">
+                <label className="text-white/90 text-sm font-medium block mb-2">
+                  # {t.hashtagLabel}
+                </label>
+                <input
+                  type="text"
+                  value={hashtags}
+                  onChange={(e) => setHashtags(e.target.value)}
+                  placeholder={t.hashtagPlaceholder}
+                  className="w-full bg-white/10 border border-white/20 rounded-lg p-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+                
+                {/* Hashtag Validation Display */}
+                <div className="mt-3 p-3 bg-white/5 rounded-lg border border-white/20">
+                  <div className="flex items-center justify-between flex-wrap gap-3">
+                    <div>
+                      {hashtagArray.length > 5 ? (
+                        <span className="text-red-400 font-bold flex items-center gap-2">
+                          <AlertTriangle className="w-4 h-4" /> {hashtagArray.length}/5 {t.hashtags} - {t.remove} {hashtagArray.length - 5}
+                        </span>
+                      ) : (
+                        <span className={`font-bold flex items-center gap-2 ${
+                          hashtagArray.length === 0 ? 'text-white/50' : 
+                          hashtagArray.length <= 3 ? 'text-green-400' :
+                          hashtagArray.length <= 5 ? 'text-yellow-400' : 'text-red-400'
+                        }`}>
+                          {hashtagArray.length > 0 && hashtagArray.length <= 5 && <Check className="w-4 h-4" />}
+                          {hashtagArray.length > 5 && <X className="w-4 h-4" />}
+                          {hashtagArray.length}/5 {t.hashtags}
+                        </span>
+                      )}
+                      
+                      {hashtagArray.length > 0 && (
+                        <div className="text-white/70 text-sm mt-1">
+                          {t.formatted} {hashtagArray.join(' ')}
+                        </div>
+                      )}
+                    </div>
+                    
+                    <span className={`font-bold ${group1Status.color}`}>
+                      {group1Chars}/{platformLimits.group1} {t.chars}
+                      {group1Status.color.includes('green') && ' ✅'}
+                      {group1Status.color.includes('yellow') && ' ⚠️'}
+                      {group1Status.color.includes('red') && ' ❌'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <button
+                onClick={enhanceWithAI}
+                disabled={aiEnhancing || !originalCaption.trim()}
+                className="mt-4 w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-lg transition-all"
+              >
+                {aiEnhancing ? '⚡ ' + t.enhancing : '✨ ' + t.enhanceButton}
+              </button>
+            </div>
+
+            {/* AI Enhanced Captions */}
+            {captions.group1.ai && (
+              <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 mb-6 border border-white/20">
+                <h2 className="text-xl font-bold text-white mb-4">📱 {t.aiCaptionsTitle}</h2>
+                
+                <div className="space-y-4">
+                  <div>
+                    <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg p-3 mb-2">
+                      <h3 className="text-white font-bold">{t.group1}</h3>
+                      <span className={`text-sm ${getCharStatus(getTotalCharCount(captions.group1.final, hashtagArray), platformLimits.group1).color}`}>
+                        {getTotalCharCount(captions.group1.final, hashtagArray)}/{platformLimits.group1} {t.chars}
+                      </span>
+                    </div>
+                    <div className="bg-white/5 rounded-lg p-4 text-white/90 whitespace-pre-wrap text-sm">
+                      {captions.group1.ai}
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-3 mb-2">
+                      <h3 className="text-white font-bold">{t.group2}</h3>
+                      <span className={`text-sm ${getCharStatus(getTotalCharCount(captions.group2.final, hashtagArray), platformLimits.group2).color}`}>
+                        {getTotalCharCount(captions.group2.final, hashtagArray)}/{platformLimits.group2} {t.chars}
+                      </span>
+                    </div>
+                    <div className="bg-white/5 rounded-lg p-4 text-white/90 whitespace-pre-wrap text-sm">
+                      {captions.group2.ai}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Platform Selection */}
+            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 mb-6 border border-white/20">
+              <h2 className="text-xl font-bold text-white mb-4">🎯 {t.platformsTitle}</h2>
+              <div className="grid grid-cols-3 gap-3">
+                {Object.entries(platforms).map(([platform, config]) => (
+                  <button
+                    key={platform}
+                    onClick={() => setPlatforms(prev => ({
+                      ...prev,
+                      [platform]: { enabled: !prev[platform].enabled }
+                    }))}
+                    className={`p-3 rounded-lg border-2 font-medium transition-all capitalize ${
+                      config.enabled
+                        ? 'bg-purple-600/30 border-purple-500 text-white'
+                        : 'bg-white/5 border-white/20 text-white/50'
+                    }`}
+                  >
+                    {config.enabled && '✅ '}{platform}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Submit */}
+            <button
+              onClick={handleSubmit}
+              className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-4 rounded-lg transition-all text-lg shadow-lg"
+            >
+              ✅ {t.submitButton}
+            </button>
+            
+            <p className="text-white/50 text-sm text-center mt-3">
+              {t.footerText}
+            </p>
+          </div>
+        </div>
+      );
+    };
+    
+    // Render the app
     ReactDOM.render(<DeepSquidContentForm />, document.getElementById('root'));
   </script>
 </body>
