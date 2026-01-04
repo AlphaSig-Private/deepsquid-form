@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeepSquid Content Logistics - Production Final</title>
+  
+  <!-- React -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  
+  <!-- Babel for JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    
+    .modal-enter {
+      animation: fadeIn 0.2s ease-out;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+    
+    // Icons
+    const Check = ({ className }) => <span className={className}>✓</span>;
+    const X = ({ className }) => <span className={className}>✕</span>;
+    const AlertTriangle = ({ className }) => <span className={className}>⚠</span>;
+    const Globe = ({ className }) => <span className={className}>🌍</span>;
+    const MapPin = ({ className }) => <span className={className}>📍</span>;
+    const Clock = ({ className }) => <span className={className}>🕐</span>;
+    
+    // TRANSLATIONS - 6 LANGUAGES
+    const translations = {
+      en: {
+        title: "DeepSquid Phase 1B",
+        subtitle: "Production Final • Fixed & Enhanced",
+        newFeatures: "PRODUCTION FEATURES:",
+        feature1: 'Fixed: Character counter now accurate (no double-counting)',
+        feature2: 'YouTube Shorts: Title (100 chars) + Description (5000 chars)',
+        feature3: 'Smart validation: Prevents platform API rejections',
+        feature4: 'Auto-optimization: All captions optimized for platform limits',
+        captionLabel: "Caption",
+        captionPlaceholder: "Amazing sunset at Bondi Beach today!",
+        hashtagLabel: "Hashtags (max 5):",
+        hashtagPlaceholder: "bondi, sunset, sydney, beach, australia",
+        youtubeTitle: "YouTube Shorts Title",
+        youtubeTitlePlaceholder: "Catchy title for your YouTube Short...",
+        altTextLabel: "Alt Text (Instagram SEO)",
+        altTextPlaceholder: "Describe image for accessibility & SEO...",
+        generateAltText: "Generate with AI",
+        generating: "Generating...",
+        locationLabel: "Location",
+        locationPlaceholder: "Bondi Beach, Sydney, Australia",
+        recentLocations: "Recent:",
+        formatted: "Formatted:",
+        chars: "chars",
+        remove: "Remove",
+        enhanceButton: "Enhance Caption with AI",
+        enhancing: "Enhancing...",
+        aiCaptionsTitle: "AI Enhanced Captions",
+        group1Title: "Group 1: Long Form",
+        group1Platforms: "Instagram • TikTok • Facebook • LinkedIn",
+        group2Title: "Group 2: Threads",
+        group2Platforms: "Threads Only",
+        group3Title: "Group 3: YouTube Shorts",
+        group3Description: "Description (5000 chars)",
+        group3TitleBox: "Title (100 chars)",
+        platformsTitle: "Platforms",
+        submitButton: "Submit & Schedule",
+        footerText: "Validates before submission • Check console (F12) for payload",
+        errorNoCaption: "Please enter a caption first",
+        errorTooManyHashtags: "Too many hashtags! Max 5 allowed.",
+        errorNoPlatforms: "Select at least one platform",
+        successMessage: "✅ Validation passed!\n\nPayload ready for n8n.\nCheck console (F12) for details.",
+        hashtags: "hashtags",
+        threadsNotSelected: "Enable Threads platform to customize its caption",
+        autoOptimized: "Auto-optimized",
+        validationErrorTitle: "⚠️ Caption Length Issues",
+        validationErrorMessage: "The following captions exceed platform limits and will be REJECTED by the platform APIs:",
+        validationErrorAction: "Please shorten the captions below before submitting.",
+        validationErrorInfo: "Posts will fail to upload if submitted over the limit.",
+        reviewAndEdit: "Review & Edit",
+        closeModal: "Close"
+      },
+      es: {
+        title: "DeepSquid Fase 1B",
+        subtitle: "Producción Final • Corregido y Mejorado",
+        newFeatures: "CARACTERÍSTICAS DE PRODUCCIÓN:",
+        feature1: 'Corregido: Contador de caracteres ahora preciso (sin doble conteo)',
+        feature2: 'YouTube Shorts: Título (100 caracteres) + Descripción (5000 caracteres)',
+        feature3: 'Validación inteligente: Previene rechazos de API de plataforma',
+        feature4: 'Auto-optimización: Todos los subtítulos optimizados para límites',
+        captionLabel: "Descripción",
+        captionPlaceholder: "¡Hermoso atardecer en Bondi Beach hoy!",
+        hashtagLabel: "Hashtags (máx 5):",
+        hashtagPlaceholder: "bondi, atardecer, sydney, playa, australia",
+        youtubeTitle: "Título de YouTube Shorts",
+        youtubeTitlePlaceholder: "Título llamativo para tu YouTube Short...",
+        altTextLabel: "Texto Alt (SEO Instagram)",
+        altTextPlaceholder: "Describe la imagen para accesibilidad y SEO...",
+        generateAltText: "Generar con IA",
+        generating: "Generando...",
+        locationLabel: "Ubicación",
+        locationPlaceholder: "Bondi Beach, Sydney, Australia",
+        recentLocations: "Recientes:",
+        formatted: "Formateado:",
+        chars: "caracteres",
+        remove: "Eliminar",
+        enhanceButton: "Mejorar con IA",
+        enhancing: "Mejorando...",
+        aiCaptionsTitle: "Descripciones Mejoradas",
+        group1Title: "Grupo 1: Forma Larga",
+        group1Platforms: "Instagram • TikTok • Facebook • LinkedIn",
+        group2Title: "Grupo 2: Threads",
+        group2Platforms: "Solo Threads",
+        group3Title: "Grupo 3: YouTube Shorts",
+        group3Description: "Descripción (5000 caracteres)",
+        group3TitleBox: "Título (100 caracteres)",
+        platformsTitle: "Plataformas",
+        submitButton: "Enviar y Programar",
+        footerText: "Valida antes de enviar • Ver consola (F12) para datos",
+        errorNoCaption: "Ingresa una descripción primero",
+        errorTooManyHashtags: "¡Demasiados hashtags! Máximo 5.",
+        errorNoPlatforms: "Selecciona al menos una plataforma",
+        successMessage: "✅ ¡Validación pasada!\n\nCarga lista para n8n.\nVer consola (F12) para detalles.",
+        hashtags: "hashtags",
+        threadsNotSelected: "Activa Threads para personalizar su descripción",
+        autoOptimized: "Auto-optimizado",
+        validationErrorTitle: "⚠️ Problemas de Longitud",
+        validationErrorMessage: "Las siguientes descripciones exceden los límites y serán RECHAZADAS:",
+        validationErrorAction: "Por favor acorta las descripciones antes de enviar.",
+        validationErrorInfo: "Las publicaciones fallarán si se envían sobre el límite.",
+        reviewAndEdit: "Revisar y Editar",
+        closeModal: "Cerrar"
+      },
+      pt: {
+        title: "DeepSquid Fase 1B",
+        subtitle: "Produção Final • Corrigido e Aprimorado",
+        newFeatures: "RECURSOS DE PRODUÇÃO:",
+        feature1: 'Corrigido: Contador de caracteres agora preciso (sem contagem dupla)',
+        feature2: 'YouTube Shorts: Título (100 caracteres) + Descrição (5000 caracteres)',
+        feature3: 'Validação inteligente: Previne rejeições de API de plataforma',
+        feature4: 'Auto-otimização: Todas as legendas otimizadas para limites',
+        captionLabel: "Legenda",
+        captionPlaceholder: "Pôr do sol incrível em Bondi Beach hoje!",
+        hashtagLabel: "Hashtags (máx 5):",
+        hashtagPlaceholder: "bondi, pordosol, sydney, praia, australia",
+        youtubeTitle: "Título YouTube Shorts",
+        youtubeTitlePlaceholder: "Título atraente para seu YouTube Short...",
+        altTextLabel: "Texto Alt (SEO Instagram)",
+        altTextPlaceholder: "Descreva a imagem para acessibilidade e SEO...",
+        generateAltText: "Gerar com IA",
+        generating: "Gerando...",
+        locationLabel: "Localização",
+        locationPlaceholder: "Bondi Beach, Sydney, Austrália",
+        recentLocations: "Recentes:",
+        formatted: "Formatado:",
+        chars: "caracteres",
+        remove: "Remover",
+        enhanceButton: "Melhorar com IA",
+        enhancing: "Melhorando...",
+        aiCaptionsTitle: "Legendas Melhoradas",
+        group1Title: "Grupo 1: Formato Longo",
+        group1Platforms: "Instagram • TikTok • Facebook • LinkedIn",
+        group2Title: "Grupo 2: Threads",
+        group2Platforms: "Apenas Threads",
+        group3Title: "Grupo 3: YouTube Shorts",
+        group3Description: "Descrição (5000 caracteres)",
+        group3TitleBox: "Título (100 caracteres)",
+        platformsTitle: "Plataformas",
+        submitButton: "Enviar e Agendar",
+        footerText: "Valida antes de enviar • Ver console (F12) para dados",
+        errorNoCaption: "Por favor, insira uma legenda primeiro",
+        errorTooManyHashtags: "Muitas hashtags! Máximo 5.",
+        errorNoPlatforms: "Selecione pelo menos uma plataforma",
+        successMessage: "✅ Validação aprovada!\n\nCarga pronta para n8n.\nVer console (F12) para detalhes.",
+        hashtags: "hashtags",
+        threadsNotSelected: "Ative Threads para personalizar sua legenda",
+        autoOptimized: "Auto-otimizado",
+        validationErrorTitle: "⚠️ Problemas de Comprimento",
+        validationErrorMessage: "As seguintes legendas excedem os limites e serão REJEITADAS:",
+        validationErrorAction: "Por favor encurte as legendas antes de enviar.",
+        validationErrorInfo: "Publicações falharão se enviadas acima do limite.",
+        reviewAndEdit: "Revisar e Editar",
+        closeModal: "Fechar"
+      },
+      zh: {
+        title: "DeepSquid 阶段1B",
+        subtitle: "生产最终版 • 修复和增强",
+        newFeatures: "生产特性：",
+        feature1: '修复：字符计数器现在准确（无重复计数）',
+        feature2: 'YouTube Shorts：标题（100字符）+ 描述（5000字符）',
+        feature3: '智能验证：防止平台API拒绝',
+        feature4: '自动优化：所有标题针对平台限制进行优化',
+        captionLabel: "说明",
+        captionPlaceholder: "今天在邦迪海滩的惊人日落！",
+        hashtagLabel: "标签（最多5个）：",
+        hashtagPlaceholder: "bondi, sunset, sydney, beach, australia",
+        youtubeTitle: "YouTube Shorts 标题",
+        youtubeTitlePlaceholder: "为您的YouTube Short创建吸引人的标题...",
+        altTextLabel: "替代文本（Instagram SEO）",
+        altTextPlaceholder: "描述图像以提高可访问性和SEO...",
+        generateAltText: "用AI生成",
+        generating: "生成中...",
+        locationLabel: "位置",
+        locationPlaceholder: "邦迪海滩，悉尼，澳大利亚",
+        recentLocations: "最近：",
+        formatted: "格式化：",
+        chars: "字符",
+        remove: "删除",
+        enhanceButton: "用AI增强",
+        enhancing: "增强中...",
+        aiCaptionsTitle: "AI增强说明",
+        group1Title: "组1：长格式",
+        group1Platforms: "Instagram • TikTok • Facebook • LinkedIn",
+        group2Title: "组2：Threads",
+        group2Platforms: "仅Threads",
+        group3Title: "组3：YouTube Shorts",
+        group3Description: "描述（5000字符）",
+        group3TitleBox: "标题（100字符）",
+        platformsTitle: "平台",
+        submitButton: "提交并安排",
+        footerText: "提交前验证 • 查看控制台（F12）获取数据",
+        errorNoCaption: "请先输入说明",
+        errorTooManyHashtags: "标签太多！最多5个。",
+        errorNoPlatforms: "至少选择一个平台",
+        successMessage: "✅ 验证通过！\n\n载荷准备好用于n8n。\n查看控制台（F12）获取详情。",
+        hashtags: "标签",
+        threadsNotSelected: "启用Threads以自定义其标题",
+        autoOptimized: "自动优化",
+        validationErrorTitle: "⚠️ 长度问题",
+        validationErrorMessage: "以下标题超过限制，将被拒绝：",
+        validationErrorAction: "提交前请缩短标题。",
+        validationErrorInfo: "超过限制的帖子将无法上传。",
+        reviewAndEdit: "审查和编辑",
+        closeModal: "关闭"
+      },
+      zht: {
+        title: "DeepSquid 階段1B",
+        subtitle: "生產最終版 • 修復和增強",
+        newFeatures: "生產特性：",
+        feature1: '修復：字符計數器現在準確（無重複計數）',
+        feature2: 'YouTube Shorts：標題（100字符）+ 描述（5000字符）',
+        feature3: '智能驗證：防止平台API拒絕',
+        feature4: '自動優化：所有標題針對平台限制進行優化',
+        captionLabel: "說明",
+        captionPlaceholder: "今天在邦迪海灘的驚人日落！",
+        hashtagLabel: "標籤（最多5個）：",
+        hashtagPlaceholder: "bondi, sunset, sydney, beach, australia",
+        youtubeTitle: "YouTube Shorts 標題",
+        youtubeTitlePlaceholder: "為您的YouTube Short創建吸引人的標題...",
+        altTextLabel: "替代文字（Instagram SEO）",
+        altTextPlaceholder: "描述圖像以提高可訪問性和SEO...",
+        generateAltText: "用AI生成",
+        generating: "生成中...",
+        locationLabel: "位置",
+        locationPlaceholder: "邦迪海灘，悉尼，澳大利亞",
+        recentLocations: "最近：",
+        formatted: "格式化：",
+        chars: "字符",
+        remove: "刪除",
+        enhanceButton: "用AI增強",
+        enhancing: "增強中...",
+        aiCaptionsTitle: "AI增強說明",
+        group1Title: "組1：長格式",
+        group1Platforms: "Instagram • TikTok • Facebook • LinkedIn",
+        group2Title: "組2：Threads",
+        group2Platforms: "僅Threads",
+        group3Title: "組3：YouTube Shorts",
+        group3Description: "描述（5000字符）",
+        group3TitleBox: "標題（100字符）",
+        platformsTitle: "平台",
+        submitButton: "提交並安排",
+        footerText: "提交前驗證 • 查看控制台（F12）獲取數據",
+        errorNoCaption: "請先輸入說明",
+        errorTooManyHashtags: "標籤太多！最多5個。",
+        errorNoPlatforms: "至少選擇一個平台",
+        successMessage: "✅ 驗證通過！\n\n載荷準備好用於n8n。\n查看控制台（F12）獲取詳情。",
+        hashtags: "標籤",
+        threadsNotSelected: "啟用Threads以自定義其標題",
+        autoOptimized: "自動優化",
+        validationErrorTitle: "⚠️ 長度問題",
+        validationErrorMessage: "以下標題超過限制，將被拒絕：",
+        validationErrorAction: "提交前請縮短標題。",
+        validationErrorInfo: "超過限制的帖子將無法上傳。",
+        reviewAndEdit: "審查和編輯",
+        closeModal: "關閉"
+      },
+      hi: {
+        title: "DeepSquid चरण 1B",
+        subtitle: "उत्पादन अंतिम • ठीक और बढ़ाया गया",
+        newFeatures: "उत्पादन सुविधाएं:",
+        feature1: 'ठीक किया: वर्ण काउंटर अब सटीक (कोई दोहरी गिनती नहीं)',
+        feature2: 'YouTube Shorts: शीर्षक (100 वर्ण) + विवरण (5000 वर्ण)',
+        feature3: 'स्मार्ट सत्यापन: प्लेटफ़ॉर्म API अस्वीकृति को रोकता है',
+        feature4: 'ऑटो-अनुकूलन: सभी कैप्शन प्लेटफ़ॉर्म सीमाओं के लिए अनुकूलित',
+        captionLabel: "कैप्शन",
+        captionPlaceholder: "आज बोंडी बीच पर अद्भुत सूर्यास्त!",
+        hashtagLabel: "हैशटैग (अधिकतम 5):",
+        hashtagPlaceholder: "bondi, sunset, sydney, beach, australia",
+        youtubeTitle: "YouTube Shorts शीर्षक",
+        youtubeTitlePlaceholder: "अपने YouTube Short के लिए आकर्षक शीर्षक...",
+        altTextLabel: "Alt Text (Instagram SEO)",
+        altTextPlaceholder: "पहुंच और SEO के लिए छवि का वर्णन करें...",
+        generateAltText: "AI से उत्पन्न करें",
+        generating: "उत्पन्न हो रहा है...",
+        locationLabel: "स्थान",
+        locationPlaceholder: "बोंडी बीच, सिडनी, ऑस्ट्रेलिया",
+        recentLocations: "हाल के:",
+        formatted: "स्वरूपित:",
+        chars: "वर्ण",
+        remove: "हटाएं",
+        enhanceButton: "AI से बेहतर बनाएं",
+        enhancing: "बेहतर बना रहे हैं...",
+        aiCaptionsTitle: "AI बेहतर कैप्शन",
+        group1Title: "समूह 1: लंबा रूप",
+        group1Platforms: "Instagram • TikTok • Facebook • LinkedIn",
+        group2Title: "समूह 2: Threads",
+        group2Platforms: "केवल Threads",
+        group3Title: "समूह 3: YouTube Shorts",
+        group3Description: "विवरण (5000 वर्ण)",
+        group3TitleBox: "शीर्षक (100 वर्ण)",
+        platformsTitle: "प्लेटफ़ॉर्म",
+        submitButton: "सबमिट करें और शेड्यूल करें",
+        footerText: "सबमिट करने से पहले सत्यापित करता है • डेटा के लिए कंसोल (F12) देखें",
+        errorNoCaption: "कृपया पहले एक कैप्शन दर्ज करें",
+        errorTooManyHashtags: "बहुत अधिक हैशटैग! अधिकतम 5।",
+        errorNoPlatforms: "कम से कम एक प्लेटफ़ॉर्म चुनें",
+        successMessage: "✅ सत्यापन पास!\n\nn8n के लिए पेलोड तैयार।\nविवरण के लिए कंसोल (F12) देखें।",
+        hashtags: "हैशटैग",
+        threadsNotSelected: "इसके कैप्शन को कस्टमाइज़ करने के लिए Threads सक्षम करें",
+        autoOptimized: "ऑटो-अनुकूलित",
+        validationErrorTitle: "⚠️ लंबाई समस्याएं",
+        validationErrorMessage: "निम्नलिखित कैप्शन सीमा से अधिक हैं और अस्वीकार किए जाएंगे:",
+        validationErrorAction: "कृपया सबमिट करने से पहले कैप्शन छोटा करें।",
+        validationErrorInfo: "सीमा से अधिक पोस्ट अपलोड विफल हो जाएंगे।",
+        reviewAndEdit: "समीक्षा करें और संपादित करें",
+        closeModal: "बंद करें"
+      }
+    };
+    
+    // Validation Error Modal Component
+    const ValidationErrorModal = ({ errors, onClose, t }) => {
+      if (!errors || errors.length === 0) return null;
+      
+      return (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-xl max-w-2xl w-full border-2 border-red-500/50 modal-enter">
+            {/* Header */}
+            <div className="bg-red-600/20 border-b border-red-500/30 p-6">
+              <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                <span className="text-3xl">⚠️</span>
+                {t.validationErrorTitle}
+              </h2>
+            </div>
+            
+            {/* Body */}
+            <div className="p-6 space-y-4">
+              <p className="text-white/90 text-base">
+                {t.validationErrorMessage}
+              </p>
+              
+              {/* Error List */}
+              <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4 space-y-3">
+                {errors.map((error, idx) => (
+                  <div key={idx} className="flex items-start gap-3">
+                    <span className="text-red-400 text-xl mt-0.5">❌</span>
+                    <div className="flex-1">
+                      <div className="text-white font-bold">{error.group}</div>
+                      <div className="text-red-300 text-sm mt-1">
+                        {error.current}/{error.limit} {t.chars}
+                        <span className="text-red-400 font-bold ml-2">
+                          ({error.current - error.limit} over limit)
+                        </span>
+                      </div>
+                      <div className="text-white/60 text-xs mt-1">
+                        Platforms: {error.platforms.join(', ')}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
+                <p className="text-blue-200 text-sm flex items-start gap-2">
+                  <span className="text-lg">ℹ️</span>
+                  <span>
+                    <strong>{t.validationErrorInfo}</strong>
+                    <br/>
+                    {t.validationErrorAction}
+                  </span>
+                </p>
+              </div>
+            </div>
+            
+            {/* Footer */}
+            <div className="border-t border-white/10 p-6 flex gap-3 justify-end">
+              <button
+                onClick={onClose}
+                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold rounded-lg transition-all"
+              >
+                {t.reviewAndEdit}
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    };
+    
+    const DeepSquidProductionFinal = () => {
+      const [language, setLanguage] = useState('en');
+      const [originalCaption, setOriginalCaption] = useState('');
+      const [hashtags, setHashtags] = useState('');
+      const [youtubeTitle, setYoutubeTitle] = useState('');
+      const [altText, setAltText] = useState('');
+      const [location, setLocation] = useState('');
+      const [recentLocations, setRecentLocations] = useState([]);
+      const [generatingAltText, setGeneratingAltText] = useState(false);
+      const [aiEnhancing, setAiEnhancing] = useState(false);
+      const [validationErrors, setValidationErrors] = useState([]);
+      const [captions, setCaptions] = useState({
+        group1: { ai: '', final: '', wasTruncated: false, originalLength: 0 },
+        group2: { ai: '', final: '', wasTruncated: false, originalLength: 0 },
+        group3: { 
+          title: '', 
+          description: '', 
+          wasTruncated: false, 
+          originalLength: 0 
+        }
+      });
+      
+      const [platforms, setPlatforms] = useState({
+        instagram: { enabled: true },
+        tiktok: { enabled: true },
+        youtube: { enabled: true },
+        threads: { enabled: false },
+        facebook: { enabled: false },
+        linkedin: { enabled: false }
+      });
+
+      const t = translations[language] || translations.en;
+
+      // Load recent locations
+      useEffect(() => {
+        const saved = localStorage.getItem('deepsquid_locations');
+        if (saved) {
+          try {
+            setRecentLocations(JSON.parse(saved));
+          } catch (e) {
+            console.error('Error loading locations:', e);
+          }
+        }
+      }, []);
+
+      // Save location
+      const saveLocation = (loc) => {
+        if (!loc || loc.trim().length === 0) return;
+        const trimmedLoc = loc.trim();
+        const updated = [trimmedLoc, ...recentLocations.filter(l => l !== trimmedLoc)].slice(0, 10);
+        setRecentLocations(updated);
+        localStorage.setItem('deepsquid_locations', JSON.stringify(updated));
+      };
+
+      // Parse hashtags
+      const parseHashtags = (input) => {
+        if (!input) return [];
+        return input.split(',').map(tag => {
+          const cleaned = tag.trim().replace(/[^a-zA-Z0-9]/g, '');
+          return cleaned.length >= 2 ? '#' + cleaned.toLowerCase() : '';
+        }).filter(tag => tag.length > 1).slice(0, 5);
+      };
+      
+      const getTotalCharCount = (caption, hashtagArray) => {
+        const hashtagString = hashtagArray.join(' ');
+        return caption.length + (hashtagString.length > 0 ? hashtagString.length + 1 : 0);
+      };
+      
+      const getCharStatus = (count, limit) => {
+        if (count === 0) return { color: 'text-gray-400' };
+        if (count <= limit) return { color: 'text-green-500' };
+        return { color: 'text-red-500' };
+      };
+
+      const platformLimits = { 
+        group1: 2200, 
+        group2: 500, 
+        group3Description: 5000,
+        group3Title: 100,
+        altText: 100 
+      };
+
+      // Smart truncate - finds sentence boundaries
+      const smartTruncate = (text, maxLength) => {
+        if (text.length <= maxLength) return { truncated: text, wasTruncated: false };
+        
+        const truncated = text.substring(0, maxLength);
+        const lastPeriod = truncated.lastIndexOf('.');
+        const lastExclaim = truncated.lastIndexOf('!');
+        const lastQuestion = truncated.lastIndexOf('?');
+        const cutPoint = Math.max(lastPeriod, lastExclaim, lastQuestion);
+        
+        if (cutPoint > maxLength * 0.6) {
+          return { truncated: truncated.substring(0, cutPoint + 1), wasTruncated: true };
+        }
+        
+        return { truncated: truncated.substring(0, maxLength - 3) + '...', wasTruncated: true };
+      };
+
+      // Generate Alt Text
+      const generateAltText = () => {
+        if (!originalCaption.trim()) {
+          alert(t.errorNoCaption);
+          return;
+        }
+        setGeneratingAltText(true);
+        setTimeout(() => {
+          const generated = `${originalCaption.substring(0, 70)}. Beautiful scene captured.`.substring(0, 100);
+          setAltText(generated);
+          setGeneratingAltText(false);
+        }, 1500);
+      };
+
+      // AUTO-TRUNCATE AI ENHANCEMENT
+      const enhanceWithAI = () => {
+        if (!originalCaption.trim()) {
+          alert(t.errorNoCaption);
+          return;
+        }
+        setAiEnhancing(true);
+        setTimeout(() => {
+          const hashtagArray = parseHashtags(hashtags);
+          const allHashtagString = hashtagArray.join(' ');
+          
+          // GROUP 1: Long form (Instagram, TikTok, Facebook, LinkedIn) - 2200 chars
+          const group1Base = `🌅✨ ${originalCaption} Absolutely stunning! Who else loves moments like this? Drop a 👇 if you saw this too!\n\n${allHashtagString}`;
+          const group1Result = smartTruncate(group1Base, platformLimits.group1);
+          
+          // GROUP 2: Threads (500 chars) - Smart truncate
+          const group2Base = `${originalCaption} ✨`;
+          const availableForGroup2 = platformLimits.group2 - allHashtagString.length - 3;
+          const group2Truncated = smartTruncate(group2Base, availableForGroup2);
+          const group2Final = group2Truncated.truncated + `\n\n${allHashtagString}`;
+          const group2Result = {
+            truncated: group2Final,
+            wasTruncated: group2Truncated.wasTruncated || group2Final.length > platformLimits.group2
+          };
+          
+          // GROUP 3: YouTube Shorts - TITLE (100 chars) + DESCRIPTION (5000 chars)
+          // Title: Short, catchy, no hashtags
+          const youtubeTitleGenerated = `${originalCaption.substring(0, 97)}${originalCaption.length > 97 ? '...' : ''}`;
+          
+          // Description: Full caption with 2-3 hashtags
+          const group3Hashtags = hashtagArray.slice(0, 3); // ONLY FIRST 3 HASHTAGS
+          const group3HashtagString = group3Hashtags.join(' ');
+          const group3DescriptionBase = `${originalCaption} ✨\n\n${group3HashtagString}`;
+          const group3Result = smartTruncate(group3DescriptionBase, platformLimits.group3Description);
+          
+          setCaptions({
+            group1: { 
+              ai: group1Result.truncated, 
+              final: group1Result.truncated,
+              wasTruncated: group1Result.wasTruncated,
+              originalLength: group1Base.length
+            },
+            group2: { 
+              ai: group2Result.truncated, 
+              final: group2Result.truncated,
+              wasTruncated: group2Result.wasTruncated,
+              originalLength: group2Base.length + allHashtagString.length + 2
+            },
+            group3: { 
+              title: youtubeTitleGenerated,
+              description: group3Result.truncated,
+              wasTruncated: group3Result.wasTruncated,
+              originalLength: group3DescriptionBase.length
+            }
+          });
+          
+          // Auto-fill YouTube Title field
+          setYoutubeTitle(youtubeTitleGenerated);
+          
+          setAiEnhancing(false);
+        }, 2000);
+      };
+
+      // SUBMIT VALIDATION - BLOCKS IF OVER LIMIT
+      const handleSubmit = () => {
+        if (!originalCaption.trim()) {
+          alert(t.errorNoCaption);
+          return;
+        }
+        
+        const hashtagArray = parseHashtags(hashtags);
+        if (hashtagArray.length > 5) {
+          alert(t.errorTooManyHashtags);
+          return;
+        }
+        
+        const enabledPlatforms = Object.entries(platforms).filter(([_, config]) => config.enabled);
+        if (enabledPlatforms.length === 0) {
+          alert(t.errorNoPlatforms);
+          return;
+        }
+        
+        // VALIDATE CAPTION LENGTHS - FIXED: Use .length directly for AI-enhanced captions
+        const errors = [];
+        
+        // Group 1 validation
+        const group1Length = captions.group1.final ? captions.group1.final.length : getTotalCharCount(originalCaption, hashtagArray);
+        if (group1Length > platformLimits.group1) {
+          errors.push({
+            group: t.group1Title,
+            current: group1Length,
+            limit: platformLimits.group1,
+            platforms: ['Instagram', 'TikTok', 'Facebook', 'LinkedIn']
+          });
+        }
+        
+        // Group 2 validation (Threads)
+        if (platforms.threads.enabled) {
+          const group2Length = captions.group2.final ? captions.group2.final.length : getTotalCharCount(originalCaption, hashtagArray);
+          if (group2Length > platformLimits.group2) {
+            errors.push({
+              group: t.group2Title,
+              current: group2Length,
+              limit: platformLimits.group2,
+              platforms: ['Threads']
+            });
+          }
+        }
+        
+        // Group 3 validation (YouTube Shorts)
+        if (platforms.youtube.enabled) {
+          // Validate Title
+          const titleLength = youtubeTitle.length;
+          if (titleLength > platformLimits.group3Title) {
+            errors.push({
+              group: t.group3Title + ' - ' + t.group3TitleBox,
+              current: titleLength,
+              limit: platformLimits.group3Title,
+              platforms: ['YouTube Shorts']
+            });
+          }
+          
+          // Validate Description
+          const descriptionLength = captions.group3.description ? captions.group3.description.length : getTotalCharCount(originalCaption, hashtagArray);
+          if (descriptionLength > platformLimits.group3Description) {
+            errors.push({
+              group: t.group3Title + ' - ' + t.group3Description,
+              current: descriptionLength,
+              limit: platformLimits.group3Description,
+              platforms: ['YouTube Shorts']
+            });
+          }
+        }
+        
+        // IF ERRORS, BLOCK SUBMISSION
+        if (errors.length > 0) {
+          setValidationErrors(errors);
+          return;
+        }
+        
+        // Save location
+        if (location.trim()) {
+          saveLocation(location);
+        }
+        
+        // ALL GOOD - SUBMIT
+        const payload = {
+          originalCaption,
+          hashtags: hashtagArray,
+          hashtagsRaw: hashtags,
+          altText: altText,
+          location: location,
+          platforms: enabledPlatforms.map(([name]) => name),
+          language,
+          captions: {
+            group1: captions.group1.final || originalCaption,
+            group2: captions.group2.final || originalCaption,
+            group3: {
+              title: youtubeTitle,
+              description: captions.group3.description || originalCaption
+            }
+          },
+          metadata: {
+            group1WasTruncated: captions.group1.wasTruncated,
+            group2WasTruncated: captions.group2.wasTruncated,
+            group3WasTruncated: captions.group3.wasTruncated
+          }
+        };
+        
+        console.log('📦 PRODUCTION FINAL PAYLOAD (VALIDATED):', JSON.stringify(payload, null, 2));
+        alert(t.successMessage);
+      };
+
+      const hashtagArray = parseHashtags(hashtags);
+      
+      // FIXED CHARACTER COUNTING - Use .length directly for AI-enhanced captions
+      const group1Chars = captions.group1.final ? captions.group1.final.length : getTotalCharCount(originalCaption, hashtagArray);
+      const group2Chars = captions.group2.final ? captions.group2.final.length : getTotalCharCount(originalCaption, hashtagArray);
+      const group3DescChars = captions.group3.description ? captions.group3.description.length : getTotalCharCount(originalCaption, hashtagArray);
+      const youtubeTitleChars = youtubeTitle.length;
+      
+      const group1Status = getCharStatus(group1Chars, platformLimits.group1);
+      const group2Status = getCharStatus(group2Chars, platformLimits.group2);
+      const group3DescStatus = getCharStatus(group3DescChars, platformLimits.group3Description);
+      const youtubeTitleStatus = getCharStatus(youtubeTitleChars, platformLimits.group3Title);
+      const altTextStatus = getCharStatus(altText.length, platformLimits.altText);
+
+      const threadsEnabled = platforms.threads.enabled;
+
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
+          <div className="max-w-4xl mx-auto">
+            
+            {/* Validation Error Modal */}
+            <ValidationErrorModal 
+              errors={validationErrors}
+              onClose={() => setValidationErrors([])}
+              t={t}
+            />
+            
+            {/* Header */}
+            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 mb-6 border border-white/20">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <img 
+                    src="./Squid_Neon_noir.png" 
+                    alt="DeepSquid" 
+                    className="h-20 w-20 object-contain rounded-lg"
+                  />
+                  <div>
+                    <h1 className="text-3xl font-bold text-white">{t.title}</h1>
+                    <p className="text-white/70 mt-1">{t.subtitle}</p>
+                  </div>
+                </div>
+                
+                {/* Language Selector */}
+                <div className="relative">
+                  <select
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value)}
+                    className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white font-medium appearance-none pr-10 cursor-pointer hover:bg-white/15 transition-all focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  >
+                    <option value="en" className="bg-slate-800">🇺🇸 English</option>
+                    <option value="es" className="bg-slate-800">🇪🇸 Español</option>
+                    <option value="pt" className="bg-slate-800">🇧🇷 Português</option>
+                    <option value="zh" className="bg-slate-800">🇨🇳 简体中文</option>
+                    <option value="zht" className="bg-slate-800">🇭🇰 繁體中文</option>
+                    <option value="hi" className="bg-slate-800">🇮🇳 हिन्दी</option>
+                  </select>
+                  <Globe className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none text-white/50" />
+                </div>
+              </div>
+            </div>
+
+            {/* Production Features Banner */}
+            <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-xl p-4 mb-6">
+              <h3 className="text-green-200 font-bold mb-3 text-lg">✨ {t.newFeatures}</h3>
+              <div className="text-green-100 text-sm space-y-2">
+                <div>✅ {t.feature1}</div>
+                <div>✅ {t.feature2}</div>
+                <div>✅ {t.feature3}</div>
+                <div>✅ {t.feature4}</div>
+              </div>
+            </div>
+
+            {/* Caption */}
+            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 mb-6 border border-white/20">
+              <h2 className="text-xl font-bold text-white mb-4">✍️ {t.captionLabel}</h2>
+              
+              <textarea
+                value={originalCaption}
+                onChange={(e) => setOriginalCaption(e.target.value)}
+                placeholder={t.captionPlaceholder}
+                className="w-full bg-white/10 border border-white/20 rounded-lg p-4 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500 min-h-[100px] resize-none"
+              />
+              
+              <div className="mt-4">
+                <label className="text-white/90 text-sm font-medium block mb-2">
+                  # {t.hashtagLabel}
+                </label>
+                <input
+                  type="text"
+                  value={hashtags}
+                  onChange={(e) => setHashtags(e.target.value)}
+                  placeholder={t.hashtagPlaceholder}
+                  className="w-full bg-white/10 border border-white/20 rounded-lg p-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+                
+                <div className="mt-3 p-3 bg-white/5 rounded-lg border border-white/20 flex items-center justify-between">
+                  <div>
+                    <span className={`font-bold ${hashtagArray.length <= 5 ? 'text-green-400' : 'text-red-400'}`}>
+                      {hashtagArray.length <= 5 ? '✓' : '✕'} {hashtagArray.length}/5 {t.hashtags}
+                    </span>
+                    {hashtagArray.length > 0 && (
+                      <div className="text-white/70 text-sm mt-1">
+                        {t.formatted} {hashtagArray.join(' ')}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              <button
+                onClick={enhanceWithAI}
+                disabled={aiEnhancing || !originalCaption.trim()}
+                className="mt-4 w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-lg transition-all"
+              >
+                {aiEnhancing ? '⚡ ' + t.enhancing : '✨ ' + t.enhanceButton}
+              </button>
+            </div>
+
+            {/* YouTube Shorts Title - NEW! */}
+            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 mb-6 border border-white/20 border-l-4 border-l-red-500">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-white">📺 {t.youtubeTitle}</h2>
+                <span className="bg-red-500/20 text-red-300 text-xs font-bold px-3 py-1 rounded-full">NEW</span>
+              </div>
+              
+              <input
+                type="text"
+                value={youtubeTitle}
+                onChange={(e) => setYoutubeTitle(e.target.value.substring(0, 100))}
+                placeholder={t.youtubeTitlePlaceholder}
+                maxLength={100}
+                className="w-full bg-white/10 border border-white/20 rounded-lg p-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+              
+              <div className="mt-2 flex items-center justify-between">
+                <span className={`text-sm font-medium ${youtubeTitleStatus.color}`}>
+                  {youtubeTitleChars}/{platformLimits.group3Title} {t.chars}
+                </span>
+              </div>
+              
+              <p className="text-white/50 text-xs mt-2">
+                📌 YouTube Shorts only • Catchy & concise • Auto-generated with AI
+              </p>
+            </div>
+
+            {/* Alt Text */}
+            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 mb-6 border border-white/20 border-l-4 border-l-green-500">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-white">🖼️ {t.altTextLabel}</h2>
+                <span className="bg-green-500/20 text-green-300 text-xs font-bold px-3 py-1 rounded-full">PHASE 1B</span>
+              </div>
+              
+              <textarea
+                value={altText}
+                onChange={(e) => setAltText(e.target.value.substring(0, 100))}
+                placeholder={t.altTextPlaceholder}
+                maxLength={100}
+                className="w-full bg-white/10 border border-white/20 rounded-lg p-4 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-green-500 min-h-[80px] resize-none"
+              />
+              
+              <div className="mt-2 flex items-center justify-between">
+                <span className={`text-sm font-medium ${altTextStatus.color}`}>
+                  {altText.length}/{platformLimits.altText} {t.chars}
+                </span>
+              </div>
+              
+              <button
+                onClick={generateAltText}
+                disabled={generatingAltText || !originalCaption.trim()}
+                className="mt-3 w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-lg transition-all"
+              >
+                {generatingAltText ? '⚡ ' + t.generating : '🤖 ' + t.generateAltText}
+              </button>
+              
+              <p className="text-white/50 text-xs mt-2">
+                📌 Instagram only • SEO boost • Accessibility
+              </p>
+            </div>
+
+            {/* Location */}
+            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 mb-6 border border-white/20 border-l-4 border-l-green-500">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <MapPin className="w-5 h-5" /> {t.locationLabel}
+                </h2>
+                <span className="bg-green-500/20 text-green-300 text-xs font-bold px-3 py-1 rounded-full">PHASE 1B</span>
+              </div>
+              
+              <input
+                type="text"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder={t.locationPlaceholder}
+                className="w-full bg-white/10 border border-white/20 rounded-lg p-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+              
+              {recentLocations.length > 0 && (
+                <div className="mt-4">
+                  <p className="text-white/70 text-sm mb-2 flex items-center gap-2">
+                    <Clock className="w-4 h-4" /> {t.recentLocations}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {recentLocations.map((loc, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setLocation(loc)}
+                        className="bg-gradient-to-r from-green-600/20 to-emerald-600/20 hover:from-green-600/30 hover:to-emerald-600/30 border border-green-500/30 rounded-lg px-3 py-2 text-white/90 text-sm transition-all"
+                      >
+                        📍 {loc}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              <p className="text-white/50 text-xs mt-3">
+                📌 Instagram & TikTok • Local discovery boost
+              </p>
+            </div>
+
+            {/* AI Enhanced Captions - 3 GROUPS */}
+            {captions.group1.ai && (
+              <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 mb-6 border border-white/20">
+                <h2 className="text-xl font-bold text-white mb-4">📱 {t.aiCaptionsTitle}</h2>
+                
+                <div className="space-y-4">
+                  {/* GROUP 1 */}
+                  <div>
+                    <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg p-3 mb-2">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <div>
+                          <h3 className="text-white font-bold">{t.group1Title}</h3>
+                          <p className="text-white/60 text-xs mt-1">{t.group1Platforms}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {captions.group1.wasTruncated && (
+                            <span 
+                              className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded"
+                              title={`Caption shortened from ${captions.group1.originalLength} to ${group1Chars} chars`}
+                            >
+                              ✂️ {t.autoOptimized}
+                            </span>
+                          )}
+                          <span className={`text-sm font-bold ${group1Status.color}`}>
+                            {group1Chars}/{platformLimits.group1} {t.chars}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-white/5 rounded-lg p-4 text-white/90 whitespace-pre-wrap text-sm">
+                      {captions.group1.ai}
+                    </div>
+                  </div>
+
+                  {/* GROUP 2: THREADS - PROGRESSIVE DISCLOSURE */}
+                  {threadsEnabled ? (
+                    <div className="border-l-4 border-l-blue-500">
+                      <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-3 mb-2">
+                        <div className="flex items-center justify-between flex-wrap gap-2">
+                          <div>
+                            <h3 className="text-white font-bold flex items-center gap-2">
+                              {t.group2Title}
+                              <span className="bg-blue-500/30 text-blue-200 text-xs px-2 py-0.5 rounded">500 max</span>
+                            </h3>
+                            <p className="text-white/60 text-xs mt-1">{t.group2Platforms}</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {captions.group2.wasTruncated && (
+                              <span 
+                                className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded"
+                                title={`Caption shortened from ${captions.group2.originalLength} to ${group2Chars} chars`}
+                              >
+                                ✂️ {t.autoOptimized}
+                              </span>
+                            )}
+                            <span className={`text-sm font-bold ${group2Status.color}`}>
+                              {group2Chars}/{platformLimits.group2} {t.chars}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="bg-white/5 rounded-lg p-4 text-white/90 whitespace-pre-wrap text-sm">
+                        {captions.group2.ai}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-blue-900/20 border border-blue-500/20 rounded-lg p-4 text-center">
+                      <p className="text-blue-300/60 text-sm">
+                        💡 {t.threadsNotSelected}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* GROUP 3: YOUTUBE SHORTS - TITLE + DESCRIPTION */}
+                  <div>
+                    <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-3 mb-2">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <div>
+                          <h3 className="text-white font-bold">{t.group3Title}</h3>
+                          <p className="text-white/60 text-xs mt-1">YouTube Shorts</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Title Box */}
+                    <div className="bg-white/5 rounded-lg p-4 mb-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-white/70 text-sm font-medium">{t.group3TitleBox}</span>
+                        <span className={`text-xs font-bold ${youtubeTitleStatus.color}`}>
+                          {youtubeTitleChars}/{platformLimits.group3Title} {t.chars}
+                        </span>
+                      </div>
+                      <div className="text-white/90 text-sm">
+                        {captions.group3.title}
+                      </div>
+                    </div>
+                    
+                    {/* Description Box */}
+                    <div className="bg-white/5 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-white/70 text-sm font-medium">{t.group3Description}</span>
+                        <div className="flex items-center gap-2">
+                          {captions.group3.wasTruncated && (
+                            <span 
+                              className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded"
+                              title="Caption shortened and limited to 2-3 hashtags for YouTube Shorts"
+                            >
+                              ✂️ {t.autoOptimized}
+                            </span>
+                          )}
+                          <span className={`text-xs font-bold ${group3DescStatus.color}`}>
+                            {group3DescChars}/{platformLimits.group3Description} {t.chars}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-white/90 whitespace-pre-wrap text-sm">
+                        {captions.group3.description}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Platforms */}
+            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 mb-6 border border-white/20">
+              <h2 className="text-xl font-bold text-white mb-4">🎯 {t.platformsTitle}</h2>
+              <div className="grid grid-cols-3 gap-3">
+                {Object.entries(platforms).map(([platform, config]) => (
+                  <button
+                    key={platform}
+                    onClick={() => setPlatforms(prev => ({
+                      ...prev,
+                      [platform]: { enabled: !prev[platform].enabled }
+                    }))}
+                    className={`p-3 rounded-lg border-2 font-medium transition-all capitalize ${
+                      config.enabled
+                        ? 'bg-purple-600/30 border-purple-500 text-white'
+                        : 'bg-white/5 border-white/20 text-white/50'
+                    }`}
+                  >
+                    {config.enabled && '✅ '}{platform}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Submit with Validation */}
+            <button
+              onClick={handleSubmit}
+              className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-4 rounded-lg text-lg shadow-lg transition-all"
+            >
+              ✅ {t.submitButton}
+            </button>
+            
+            <p className="text-white/50 text-sm text-center mt-3">
+              {t.footerText}
+            </p>
+          </div>
+        </div>
+      );
+    };
+    
+    ReactDOM.render(<DeepSquidProductionFinal />, document.getElementById('root'));
+  </script>
+</body>
+</html>
